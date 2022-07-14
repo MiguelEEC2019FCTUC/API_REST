@@ -60,67 +60,40 @@ app = Flask(__name__)  # é criado um objeto do tipo flask e guardado com o nome
 #         self.pwm = pwm
 #         self.serial = serial
 
+
 def db_connection():
     conn = sqlite3.connect('identifier.sqlite')
     return conn
 
-
-def get_placa_json(placa_id):
-    placa = {}
-    try:
-        conn = db_connection()
-        conn.row_factory = sqlite3.Row
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM Mode3 WHERE UUID = ?",(placa_id))
-
-        row = cur.fetchone()
-
-        #converter row em formato dicionário
-        placa["placa_id"] = row["placa_id"]
-        placa["Firmware"] = row["Firmware"]
-        placa["Relay"] = row ["Relay"]
-        placa["Contact"] = row["Contact"]
-        placa["PWM"] = row["PWM"]
-        placa["CP"] = row["CP"]
-        placa["Serial"] = row["Serial"]
-    except:
-        placa = {}
-    return placa
-
-
-def insert_placa(placa):
+def insert_Mode3(placa):
     inserted_placa = {}
-    try:
-        conn = db_connection()
-        cur = conn.cursor()
-        query = "INSERT INTO Mode3 (Firmware, RS485, Relay, Contact, PWM, CP, Serial,TIMESTAMP) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-        new_Firmware = request.json['Firmware']
-        new_RS485 = request.json['RS485']
-        new_Relay = request.json['Relay']
-        new_Contact = request.json['Contact']
-        new_PWM = request.json['PWM']
-        new_CP = request.json['CP']
-        new_Serial = request.json['Serial']
-        timestamp = currentDateTime
-        cur.execute(query, (new_Firmware, new_RS485, new_Relay, new_Contact, new_PWM, new_CP, new_Serial, timestamp))
-        conn.commit()
 
-        inserted_placa = get_placa_json(cur.lastrowid)
-    except:
-        conn().rollback()
+    conn = db_connection()
+    cur = conn.cursor()
+    query = ("INSERT INTO Mode3 (Firmware, RS485, Relay, Contact, PWM, CP, Serial,TIMESTAMP) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+    new_Firmware = request.json['Firmware']
+    new_RS485 = request.json['RS485']
+    new_Relay = request.json['Relay']
+    new_Contact = request.json['Contact']
+    new_PWM = request.json['PWM']
+    new_CP = request.json['CP']
+    new_Serial = request.json['Serial']
+    timestamp = currentDateTime
+    cur.execute(query, (new_Firmware, new_RS485, new_Relay, new_Contact, new_PWM, new_CP, new_Serial, timestamp))
+    conn.commit()
 
-    finally:
-        conn.close()
+    inserted_placa = get_placa_json(cur.lastrowid)
+
+    conn.close()
 
     return inserted_placa
-
 #Funçoes que pesquisem uma placa por uma caracteristica
-def get_placa_by_RS(rs485):
+def get_placa_by_RS(rs485,nome_placa):
     placas = []
     conn = db_connection()
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Mode3 WHERE RS485 = ?", (rs485))
+    cursor.execute("SELECT * FROM ? WHERE RS485 = ?",(nome_placa) , (rs485))
     rows = cursor.fetchall()
     #converter para formato dicionário
     for i in rows:
@@ -225,14 +198,119 @@ def get_placa_by_CP(cp):
         placas.append(placa)
 
     return placas
-@app.route('/placas/add', methods = ['POST'])
-def api_add_placa():
-    placa = request.get_json()
-    return jsonify(insert_placa(placa))
+def get_placa_json(placa_id,nome_placa):
+    placa = {}
+    try:
+        conn = db_connection()
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM Mode3 WHERE UUID = ?",(placa_id))
 
+        row = cur.fetchone()
 
-@app.route("/placas", methods=["GET", "POST"])  # é definido o endpoint API /placas e o método request (GET) e POST
-def Placas():
+        #converter row em formato dicionário
+        placa["placa_id"] = row["placa_id"]
+        placa["Firmware"] = row["Firmware"]
+        placa["Relay"] = row ["Relay"]
+        placa["Contact"] = row["Contact"]
+        placa["PWM"] = row["PWM"]
+        placa["CP"] = row["CP"]
+        placa["Serial"] = row["Serial"]
+    except:
+        placa = {}
+    return placa
+def get_placa_by_Serial(serial): #considerando que nao há várias placas com o mesmo Serial nº
+    placas = []
+    conn = db_connection()
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Mode3 WHERE Serial = ?",(serial,))
+    rows = cursor.fetchone()
+    # converter para formato dicionário
+    #for i in rows:
+    placa = {}
+    placa["UUID"] = rows["UUID"]
+    placa["Firmware"] = rows["Firmware"]
+    placa["RS485"] = rows["RS485"]
+    placa["Relay"] = rows["Relay"]
+    placa["Contact"] = rows["Contact"]
+    placa["PWM"] = rows["PWM"]
+    placa["CP"] = rows["CP"]
+    placa["Serial"] = rows["Serial"]
+    placa["TIMESTAMP"] = rows["TIMESTAMP"]
+    #placas.append(placa)
+
+    return placa
+#-------------------------------------------------
+def get_placa_json2(placa_id):
+    placa = {}
+    try:
+        conn = db_connection()
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM CCS WHERE UUID = ?",(placa_id))
+
+        row = cur.fetchone()
+
+        #converter row em formato dicionário
+        placa["placa_id"] = row["placa_id"]
+        placa["Serial"] = row["Serial"]
+        placa["teste1"] = row ["teste1"]
+        placa["teste2"] = row["teste2"]
+        placa["teste3"] = row["teste3"]
+        placa["test4"] = row["test4"]
+        placa["test5"] = row["test5"]
+    except:
+        placa = {}
+    return placa
+def insert_CCS(ccs):
+    inserted_placa = {}
+    conn = db_connection()
+    cur = conn.cursor()
+    query = ("INSERT INTO CCS (Serial, teste1,teste2,teste3,test4,test5,Firmware,TIMESTAMP) VALUES (?, ?, ?, ?, ?, ?, ?,?)")
+    new_serial = request.json['Serial']
+    new_test1 = request.json['teste1']
+    new_tes2 = request.json['teste2']
+    new_test3 = request.json['teste3']
+    new_test4 = request.json['test4']
+    new_test5 = request.json['test5']
+    new_firmware = request.json['Firmware']
+    timestamp = currentDateTime
+    cur.execute(query, (new_serial,new_test1,new_tes2,new_test3,new_test4,new_test5,new_firmware,timestamp))
+    conn.commit()
+
+    inserted_placa = get_placa_json2(cur.lastrowid)
+
+    conn.close()
+
+    return inserted_placa
+#-------------------------------------------------
+def insert_CHADEMO(chademo):
+    inserted_placa = {}
+    conn = db_connection()
+    cur = conn.cursor()
+    query = (
+        "INSERT INTO CHADEMO (Serial, teste,Firmware,TIMESTAMP) VALUES (?, ?, ?, ?)")
+    new_serial = request.json['Serial']
+    new_teste = request.json['teste']
+    new_firmware = request.json['Firmware']
+    timestamp = currentDateTime
+    cur.execute(query, (new_serial, new_teste, new_firmware, timestamp))
+    conn.commit()
+
+    inserted_placa = get_placa_json2(cur.lastrowid)
+
+    conn.close()
+
+    return inserted_placa
+
+#rotas para Mode3
+@app.route('/tests/Mode3/add', methods = ['POST'])
+def api_add_Mode3():
+    Mode3 = request.get_json()
+    return jsonify(insert_Mode3(Mode3))
+@app.route("/tests/Mode3", methods=["GET", "POST"])  # é definido o endpoint API /placas e o método request (GET) e POST
+def Mode3():
     conn = db_connection()
     cursor = conn.cursor()
     if request.method == "GET":
@@ -244,22 +322,27 @@ def Placas():
         ]
         if placas is not None:
             return jsonify(placas)
-
-@app.route("/placas/RS/<sn>",methods = ['GET'])
+@app.route("/tests/Mode3/Serial/<serial>", methods = ['GET'])
+def Serial(serial):
+    return jsonify(get_placa_by_Serial(serial))
+@app.route("/tests/Mode3/RS/<sn>",methods = ['GET'])
 def RS(sn):
     return jsonify(get_placa_by_RS(sn))
-@app.route("/placas/Relay/<sn>", methods = ['GET'])
+@app.route("/tests/Mode3/Relay/<sn>", methods = ['GET'])
 def Relay(sn):
     return jsonify(get_placa_by_Relay(sn))
-@app.route("/placas/Contact/<sn>", methods=['GET'])
+@app.route("/tests/Mode3/Contact/<sn>", methods=['GET'])
 def Contact(sn):
     return jsonify(get_placa_by_Contact(sn))
-@app.route("/placas/PWM/<sn>", methods=['GET'])
+@app.route("/tests/Mode3/PWM/<sn>", methods=['GET'])
 def PWM(sn):
     return jsonify(get_placa_by_PWM(sn))
-@app.route("/placas/CP/<sn>", methods=['GET'])
+@app.route("/tests/Mode3/CP/<sn>", methods=['GET'])
 def CP(sn):
     return jsonify(get_placa_by_CP(sn))
+
+
+
 
     # if request.method == "POST":
     #     new_Firmware = request.form['Firmware']
@@ -275,13 +358,55 @@ def CP(sn):
     #     conn.commit()
     #     return f"placa com id: {cursor.lastrowid} created sucessufully", 201
 
+#rotas para CCS
+@app.route("/tests/CCS",methods = ['GET'])
+def CCS():
+    conn = db_connection()
+    cursor = conn.cursor()
+    if request.method == "GET":
+        cursor = conn.execute("SELECT * FROM CCS")
+        placas = [
+            dict(UUID=row[0], Serial = row[1], teste1=row[2], teste2=row[3], teste3=row[4], test4=row[5], test5=row[6], Firmware = row[7],TIMESTAMP = row[8])
+            for row in cursor.fetchall()
+        ]
+        if placas is not None:
+            return jsonify(placas)
+@app.route("/tests/CCS/add", methods = ['POST'])
+def api_add_CCS():
+    CCS = request.get_json()
+    return jsonify(insert_CCS(CCS))
+
+#rotas para CHADEMO
+@app.route("/tests/CHADEMO",methods = ['GET'])
+def CHADEMO():
+    conn = db_connection()
+    cursor = conn.cursor()
+    if request.method == "GET":
+        cursor = conn.execute("SELECT * FROM CHADEMO")
+        placas = [
+            dict(UUID = row[0], Serial = row[1], teste = row[2], Firmware = row[3], TIMESTAMP = row[4])
+            for row in cursor.fetchall()
+        ]
+        if placas is not None:
+            return jsonify(placas)
+@app.route("/tests/CHADEMO/add", methods = ['POST'])
+def api_add_CHADEMO():
+    CHADEMO = request.get_json()
+    return jsonify(insert_CHADEMO(CHADEMO))
+
+#calibraçao de meters
+@app.route("/Meter/Calibration", methods = ['POST'])
+def api_add_dataMeters():
+    data = request.get_json()
+    return jsonify()
+
+
 
 # @app.route("/placas/<int:id>", methods=["GET"])  # cria outra API endpoint onde o <id> vai ser o indice do array
 # def getPlaca(id):
 #     plac = [placas for placas in placas if placas['id'] == id]
 #     return jsonify(plac[0])
-#
-#
+
 # @app.route("/placas", methods=["POST"])  # cria-se outra endpoint com o metodo POST para ser adicionados novos dados
 # def addPlaca():
 #     placa = request.json['placa']
@@ -292,7 +417,6 @@ def CP(sn):
 #     data['id']
 #     return jsonify(data)
 
-
 # é necessário adicionar um método PUT para o caso de ser preciso alterar dados de uma placa
 # @app.route("/placas/<int:id>", methods=["PUT"])
 # def AlterarPlaca(id):  # faz a verificaçao da placa pelo id
@@ -301,8 +425,7 @@ def CP(sn):
 #     plac[0]['id'] = request.json.get('id', plac[0]['id'])
 #
 #     return jsonify(plac[0])
-#
-#
+
 # # apresentar lista de todas as placas que estao flashadas
 # @app.route("/placas/flash", methods=["GET"])
 # def getFlash():  # verifica as placas se estao flashadas
