@@ -393,12 +393,53 @@ def CHADEMO():
 def api_add_CHADEMO():
     CHADEMO = request.get_json()
     return jsonify(insert_CHADEMO(CHADEMO))
-
-#calibraçao de meters
-@app.route("/Meter/Calibration", methods = ['POST'])
-def api_add_dataMeters():
-    data = request.get_json()
-    return jsonify()
+#--------------------------------------------------------------------
+# #CALIBRATION METER
+# def CalibData(Array_tensao, Array_corrente):
+#
+#     data = {}
+#
+#     data["Tensao"] = Array_tensao
+#     data["Corrente"] = Array_corrente
+#     print(data)
+#     return data
+#
+# def TestData(P_tensao,P_corrente,req_tensao,req_corrente):
+#     data = {}
+#
+#     data["Tensao"] = P_tensao
+#     data["Corrente"] = P_corrente
+#     data["Req Tensao"] = req_tensao
+#     data["Req Corrente"] = req_corrente
+#     print(data)
+#
+#     return data
+#
+# def Insert_Calibration(meter):
+#     data_inserted = {}
+#
+#     conn = db_connection()
+#     cur = conn.cursor()
+#     query = "INSERT INTO METER (Serial, CalibData, TestData,Status,TIMESTAMP) VALUES (?, ?, ?, ?,?)"
+#     new_CalibData = request.json['CalibData']
+#     new_TestData = request.json['TestData']
+#     new_serial = request.json['Serial']
+#     new_Status = request.json['Status']
+#     timestamp = currentDateTime
+#     cur.execute(query, (new_CalibData,new_TestData,new_serial,new_Status,timestamp))
+#     conn.commit()
+#
+#     data_inserted = get_placa_json(cur.lastrowid)
+#
+#     conn.close()
+#
+#     return data_inserted
+#
+# #calibraçao de meters
+# @app.route("/Meter/Calibration", methods = ['POST'])
+# def api_add_dataMeters():
+#     data = request.get_json()
+#     return jsonify(Insert_Calibration(data))
 
 
 
